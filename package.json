@@ -1,3 +1,5 @@
 {
-  "type": "module"
+  "dependencies": {
+    "canvas": "^2.11.2" // or latest
+  }
 }
