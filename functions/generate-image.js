@@ -1,28 +1,25 @@
-const PImage = require('pureimage');
-const fs = require('fs');
+const { createCanvas, loadImage, registerFont } = require('canvas');
 const path = require('path');
 
-// Register font
+const backgroundImageFile = path.join(__dirname, '../data_domcoast.png');
 const fontPath = path.join(__dirname, '../arial.ttf');
-if (fs.existsSync(fontPath)) {
-  PImage.registerFont(fontPath, 'Arial').loadSync();
-} else {
+
+try {
+  registerFont(fontPath, { family: 'Arial' });
+} catch (e) {
   console.warn('Arial font not found, using default font');
 }
 
-exports.handler = async (event, context) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).send('Method Not Allowed');
   }
 
   try {
-    const { id, body } = JSON.parse(event.body);
+    const { id, body } = req.body;
 
     if (!id || !Array.isArray(body) || body.length === 0) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Missing required fields' }),
-      };
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
     for (const row of body) {
@@ -31,52 +28,45 @@ exports.handler = async (event, context) => {
         row.domain_rating === undefined ||
         row.backlinks === undefined
       ) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify({
-            error: 'Each row must include referring_domains, domain_rating, backlinks',
-          }),
-        };
+        return res.status(400).json({
+          error: 'Each row must include referring_domains, domain_rating, backlinks',
+        });
       }
     }
 
-    // Create canvas (adjust size to match your design)
-    const width = 800;
-    const height = 600;
-    const img = PImage.make(width, height);
-    const ctx = img.getContext('2d');
+    const image = await loadImage(backgroundImageFile);
+    const canvas = createCanvas(image.width, image.height);
+    const ctx = canvas.getContext('2d');
 
-    // Background
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(image, 0, 0);
 
-    // Header
+    ctx.font = `bold 24px Arial`;
     ctx.fillStyle = 'black';
-    ctx.font = "24pt Arial";
-    ctx.fillText(`ID: ${id}`, 30, 30);
+    ctx.textBaseline = 'top';
+    ctx.fillText(id, 30, 30);
 
-    // Table data
-    ctx.font = "16pt Arial";
+    const fontSize = 16;
+    ctx.font = `${fontSize}px Arial`;
 
     const x_referring = 30;
     const x_rating_center = 400;
     const x_backlinks_center = 650;
-    const start_y = 100;
-    const row_height = 40;
-    const padding_top = 10;
+    const start_y = 135;
+    const row_height = 30;
+    const margin_left = 40;
+    const row_width = 720;
+    const padding_top = 8;
 
     body.slice(0, 5).forEach((row, idx) => {
       const y = start_y + idx * row_height;
 
-      // Separator line
       ctx.strokeStyle = '#CCCCCC';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(10, y + row_height);
-      ctx.lineTo(width - 10, y + row_height);
+      ctx.moveTo(margin_left - 20, y + row_height);
+      ctx.lineTo(margin_left + row_width, y + row_height);
       ctx.stroke();
 
-      ctx.fillStyle = 'black';
       ctx.fillText(String(row.referring_domains), x_referring, y + padding_top);
 
       const ratingText = String(row.domain_rating);
@@ -88,28 +78,11 @@ exports.handler = async (event, context) => {
       ctx.fillText(backlinksText, x_backlinks_center - backlinksWidth / 2, y + padding_top);
     });
 
-    // Encode to buffer
-    const stream = require('stream');
-    const bufferStream = new stream.PassThrough();
-    await PImage.encodePNGToStream(img, bufferStream);
-
-    const chunks = [];
-    for await (const chunk of bufferStream) {
-      chunks.push(chunk);
-    }
-    const buffer = Buffer.concat(chunks);
-
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'image/png' },
-      body: buffer.toString('base64'),
-      isBase64Encoded: true,
-    };
+    const buffer = canvas.toBuffer('image/png');
+    res.setHeader('Content-Type', 'image/png');
+    res.send(buffer);
   } catch (err) {
     console.error(err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Server Error' }),
-    };
+    res.status(500).json({ error: 'Server Error' });
   }
 };
