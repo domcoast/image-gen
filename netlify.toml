@@ -1,8 +1,0 @@
-[build]
-  functions = "functions"
-  command = "npm install"
-
-[[redirects]]
-  from = "/generate-image"
-  to = "/.netlify/functions/generate-image"
-  status = 200
