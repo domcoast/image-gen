@@ -1,8 +1,8 @@
 {
-  "name": "image-generator",
+  "name": "generate-image-api",
   "version": "1.0.0",
-  "main": "functions/generate-image.js",
+  "main": "api/generate-image.js",
   "dependencies": {
-    "pureimage": "^0.4.1"
+    "canvas": "^2.11.2"
   }
 }
