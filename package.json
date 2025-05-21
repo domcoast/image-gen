@@ -1,13 +1,8 @@
 {
   "name": "image-generator",
   "version": "1.0.0",
-  "description": "An image generation tool",
   "main": "functions/generate-image.js",
-  "scripts": {
-    "start": "node functions/generate-image.js"
-  },
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.70"
-  },
-  "license": "MIT"
+    "pureimage": "^0.4.1"
+  }
 }
