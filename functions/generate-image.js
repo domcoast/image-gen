@@ -1,13 +1,12 @@
-const { createCanvas, loadImage } = require('@napi-rs/canvas');
-const path = require('path');
+const PImage = require('pureimage');
 const fs = require('fs');
+const path = require('path');
 
-const backgroundImageFile = path.join(__dirname, '../domcoast_image.png');
+// Register font
 const fontPath = path.join(__dirname, '../arial.ttf');
-
-try {
-  registerFont(fontPath, { family: 'Arial' });
-} catch (e) {
+if (fs.existsSync(fontPath)) {
+  PImage.registerFont(fontPath, 'Arial').loadSync();
+} else {
   console.warn('Arial font not found, using default font');
 }
 
@@ -41,41 +40,43 @@ exports.handler = async (event, context) => {
       }
     }
 
-    const image = await loadImage(backgroundImageFile);
-    const canvas = createCanvas(image.width, image.height);
-    const ctx = canvas.getContext('2d');
+    // Create canvas (adjust size to match your design)
+    const width = 800;
+    const height = 600;
+    const img = PImage.make(width, height);
+    const ctx = img.getContext('2d');
 
-    ctx.drawImage(image, 0, 0);
+    // Background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, width, height);
 
-    // Write the ID
-    ctx.font = `bold 24px Arial`;
+    // Header
     ctx.fillStyle = 'black';
-    ctx.textBaseline = 'top';
-    ctx.fillText(id, 30, 30);
+    ctx.font = "24pt Arial";
+    ctx.fillText(`ID: ${id}`, 30, 30);
 
-    // Table content
-    const fontSize = 16;
-    ctx.font = `${fontSize}px Arial`;
+    // Table data
+    ctx.font = "16pt Arial";
 
     const x_referring = 30;
     const x_rating_center = 400;
     const x_backlinks_center = 650;
-    const start_y = 135;
-    const row_height = 30;
-    const margin_left = 40;
-    const row_width = 720;
-    const padding_top = 8;
+    const start_y = 100;
+    const row_height = 40;
+    const padding_top = 10;
 
     body.slice(0, 5).forEach((row, idx) => {
       const y = start_y + idx * row_height;
 
+      // Separator line
       ctx.strokeStyle = '#CCCCCC';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(margin_left - 20, y + row_height);
-      ctx.lineTo(margin_left + row_width, y + row_height);
+      ctx.moveTo(10, y + row_height);
+      ctx.lineTo(width - 10, y + row_height);
       ctx.stroke();
 
+      ctx.fillStyle = 'black';
       ctx.fillText(String(row.referring_domains), x_referring, y + padding_top);
 
       const ratingText = String(row.domain_rating);
@@ -87,12 +88,20 @@ exports.handler = async (event, context) => {
       ctx.fillText(backlinksText, x_backlinks_center - backlinksWidth / 2, y + padding_top);
     });
 
-    const buffer = canvas.toBuffer('image/png');
+    // Encode to buffer
+    const stream = require('stream');
+    const bufferStream = new stream.PassThrough();
+    await PImage.encodePNGToStream(img, bufferStream);
+
+    const chunks = [];
+    for await (const chunk of bufferStream) {
+      chunks.push(chunk);
+    }
+    const buffer = Buffer.concat(chunks);
+
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'image/png',
-      },
+      headers: { 'Content-Type': 'image/png' },
       body: buffer.toString('base64'),
       isBase64Encoded: true,
     };
