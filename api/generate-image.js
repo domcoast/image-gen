@@ -1,4 +1,4 @@
-const { createCanvas, loadImage, registerFont } = require('canvas');
+import { createCanvas, loadImage, registerFont } from 'canvas';
 const path = require('path');
 
 const backgroundImageFile = path.join(__dirname, '../data_domcoast.png');
