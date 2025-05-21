@@ -3,23 +3,19 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-// __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Paths to assets
 const backgroundImageFile = path.join(__dirname, '../data_domcoast.png');
 const fontPath = path.join(__dirname, '../arial.ttf');
 
-// Register font if available
 try {
   registerFont(fontPath, { family: 'Arial' });
 } catch (e) {
   console.warn('Arial font not found, using default font');
 }
 
-// Default export for serverless handler
-export default async (req, res) => {
+export default async function generateImage(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).send('Method Not Allowed');
   }
@@ -93,4 +89,4 @@ export default async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Server Error' });
   }
-};
+}
