@@ -1,16 +1,25 @@
 import { createCanvas, loadImage, registerFont } from 'canvas';
-const path = require('path');
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
+// __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Paths to assets
 const backgroundImageFile = path.join(__dirname, '../data_domcoast.png');
 const fontPath = path.join(__dirname, '../arial.ttf');
 
+// Register font if available
 try {
   registerFont(fontPath, { family: 'Arial' });
 } catch (e) {
   console.warn('Arial font not found, using default font');
 }
 
-module.exports = async (req, res) => {
+// Default export for serverless handler
+export default async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).send('Method Not Allowed');
   }
@@ -39,7 +48,6 @@ module.exports = async (req, res) => {
     const ctx = canvas.getContext('2d');
 
     ctx.drawImage(image, 0, 0);
-
     ctx.font = `bold 24px Arial`;
     ctx.fillStyle = 'black';
     ctx.textBaseline = 'top';
