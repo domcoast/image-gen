@@ -15,7 +15,7 @@ def generate_image():
     image_id = data['id']
 
     try:
-        image_path = os.path.join(os.path.dirname(__file__), 'data_domcoast.png')
+        image_path = os.path.join(os.path.dirname(__file__), '../data_domcoast.png')
         image = Image.open(image_path)
     except FileNotFoundError:
         return jsonify({'error': 'Background image not found'}), 500
