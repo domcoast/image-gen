@@ -32,7 +32,7 @@ def generate_image():
         font_path_regular = os.path.join(os.path.dirname(__file__), '../arial.ttf')
         font_path_bold = os.path.join(os.path.dirname(__file__), '../arialbd.ttf')
         font_regular = ImageFont.truetype(font_path_regular, 16)
-        font_bold = ImageFont.truetype(font_path_bold, 24)
+        font_bold = ImageFont.truetype(font_path_bold, 26)
     except Exception as e:
         print("Font loading error:", e)
         font_regular = ImageFont.load_default()
