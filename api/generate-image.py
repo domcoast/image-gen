@@ -14,16 +14,14 @@ def generate_image():
     rows = data['body']
     image_id = data['id']
 
-    # Load background image
     try:
-        image_path = os.path.join(os.path.dirname(__file__), '..', 'data_domcoast.png')
+        image_path = os.path.join(os.path.dirname(__file__), 'data_domcoast.png')
         image = Image.open(image_path)
     except FileNotFoundError:
         return jsonify({'error': 'Background image not found'}), 500
 
     draw = ImageDraw.Draw(image)
 
-    # Font settings
     try:
         font_regular = ImageFont.truetype("arial.ttf", 16)
         font_bold = ImageFont.truetype("arialbd.ttf", 24)
@@ -33,7 +31,6 @@ def generate_image():
 
     draw.text((30, 35), f"ID: {image_id}", fill="black", font=font_bold)
 
-    # Table layout
     x_referring = 30
     x_rating_center = 400
     x_backlinks_center = 650
@@ -46,7 +43,6 @@ def generate_image():
     for idx, row in enumerate(rows):
         y = start_y + idx * row_height
         draw.line([(margin_left - 20, y + row_height), (margin_left + row_width, y + row_height)], fill="#CCCCCC", width=1)
-
         draw.text((x_referring, y + padding_top), str(row['referring_domains']), fill="black", font=font_regular)
 
         rating_text = str(row['domain_rating'])
@@ -63,7 +59,6 @@ def generate_image():
 
     return send_file(img_bytes, mimetype='image/png', download_name=f"{image_id}.png")
 
-# Needed for vercel-python runtime
-def handler(request):
-    with app.test_request_context(environ_base=request.environ):
-        return app.full_dispatch_request()
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
