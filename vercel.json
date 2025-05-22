@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/generate-image.py": {
+      "runtime": "vercel-python@0.5.0"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/generate-image",
+      "dest": "api/generate-image.py"
+    }
+  ]
+}
