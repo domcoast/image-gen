@@ -27,16 +27,19 @@ def generate_image():
 
     draw = ImageDraw.Draw(image)
 
-    # Load fonts
+    # Load fonts with absolute paths
     try:
-        font_regular = ImageFont.truetype("arial.ttf", 16)
-        font_bold = ImageFont.truetype("arialbd.ttf", 24)
-    except:
+        font_path_regular = os.path.join(os.path.dirname(__file__), 'arial.ttf')
+        font_path_bold = os.path.join(os.path.dirname(__file__), 'arialbd.ttf')
+        font_regular = ImageFont.truetype(font_path_regular, 16)
+        font_bold = ImageFont.truetype(font_path_bold, 24)
+    except Exception as e:
+        print("Font loading error:", e)
         font_regular = ImageFont.load_default()
         font_bold = ImageFont.load_default()
 
-    # Draw ID at top
-    draw.text((30, 35), f"ID: {image_id}", fill="black", font=font_bold)
+    # Draw ID (just the value, no 'ID:') at top
+    draw.text((30, 35), f"{image_id}", fill="black", font=font_bold)
 
     # Table column positions
     x_referring = 30
@@ -52,7 +55,7 @@ def generate_image():
     for idx, row in enumerate(rows):
         y = start_y + idx * row_height
         draw.line([(margin_left - 20, y + row_height), (margin_left + row_width, y + row_height)], fill="#CCCCCC", width=1)
-        
+
         draw.text((x_referring, y + padding_top), str(row['referring_domains']), fill="black", font=font_regular)
 
         rating_text = str(row['domain_rating'])
